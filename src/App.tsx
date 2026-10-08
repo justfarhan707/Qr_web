@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from './lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import './App.css'
 
 export default function App() {
@@ -10,7 +10,10 @@ export default function App() {
   const [error, setError] = useState('')
   const submit = async () => {
     if (!name.trim() || !/^\d{10}$/.test(phone)) { setError('Enter your name and valid 10-digit mobile number.'); return }
-    const { data, error: claimError } = await supabase.rpc('demo_claim_reward', { p_customer_name: name.trim(), p_customer_phone: phone })
+    const url = import.meta.env.VITE_SUPABASE_URL
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+    if (!url || !key) { setError('Reward service is not configured yet.'); return }
+    const { data, error: claimError } = await createClient(url, key).rpc('demo_claim_reward', { p_customer_name: name.trim(), p_customer_phone: phone })
     if (claimError || !data?.[0]) { setError(claimError?.message ?? 'Could not create your reward.'); return }
     setClaim(data[0])
   }
